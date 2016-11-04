@@ -36,6 +36,10 @@ public:
 	BinNode<T>* Pre_Pre();
 	BinNode<T>* Pre_In();
 	BinNode<T>* Pre_Post();
+
+	bool Excise1_R(T Sum);
+	bool Excise1_I(T Sum);
+
 	bool UpdateHeight();
 	void UpdateDepth();
 	int Depth();
@@ -723,6 +727,45 @@ BinNode<T>* BinNode<T>::Pre_Post()
 	pNode = pNode->_parent;
 	return pNode ? pNode->_lChild : pNode;
 	//return pNode->_parent ? pNode->Sibling() : NULL;
+}
+
+template<typename T>
+bool BinNode<T>::Excise1_R(T Sum)
+{
+	if (_data < Sum)
+		return false;
+	Sum += _data;
+	if (_lChild&&!_lChild->Excise1_R(Sum))
+		return false;
+	if (_rChild&&!_rChild->Excise1_R(Sum))
+		return false;
+	return true;
+}
+
+template<typename T>
+bool BinNode<T>::Excise1_I(T Sum)
+{
+	BinNode<T>* pNode = this;
+	while (pNode)
+	{
+		if (pNode->_data < Sum)
+			return false;
+		if (pNode->HasChild())
+		{
+			Sum += pNode->_data;
+			pNode = pNode->_lChild ? pNode->_lChild : pNode->_rChild;
+			continue;
+		}
+		while (pNode->IsRChild()||(pNode->IsLChild()&&!pNode->Sibling()))
+		{
+			pNode = pNode->_parent;
+			Sum -= pNode->_data;
+		}
+		if (!pNode->_parent)
+			break;
+		pNode = pNode->Sibling();
+	}
+	return true;
 }
 
 template<typename T>

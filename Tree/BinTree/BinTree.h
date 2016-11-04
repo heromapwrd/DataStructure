@@ -22,6 +22,9 @@ public:
 	BinTree<T>* Swap_R();
 	BinTree<T>* Swap_I();
 
+	bool Excise1_R(T Sum);
+	bool Excise1_I(T Sum);
+
 	template<typename VST>
 	void TravLevel(VST& visit);
 	template<typename VST>
@@ -139,6 +142,24 @@ BinTree<T>* BinTree<T>::Swap_R()
 	if (_root)
 		_root->Swap();
 	return *this;
+}
+
+template<typename T>
+bool BinTree<T>::Excise1_R(T Sum)
+{
+	if (_root)
+		return _root->Excise1_R(Sum);
+	else
+		return false;
+}
+
+template<typename T>
+bool BinTree<T>::Excise1_I(T Sum)
+{
+	if (_root)
+		return _root->Excise1_I(Sum);
+	else
+		return false;
 }
 
 template <typename T>
