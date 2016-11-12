@@ -45,7 +45,7 @@ public:
 	void BFS(int pos);
 	void DFS(int pos);
 	void DFS_I(int pos);
-	void BCC(int pos);
+	hash_map<int,int>* BCC(int pos);
 	stack<Tv>* TSort(int pos);
 	list<int>* TSort_Extremum();
 	void Prim(int pos);
@@ -67,7 +67,7 @@ private:
 	void BFS(int vPos, int& clock);
 	void DFS(int vPos, int& clock);
 	void DFS_I(int vPos, int& clock);
-	void BCC(int v, int& clock, stack<int>& s, hash_map<int,int>& result);
+	void BCC(int v, int& clock, stack<int>& s, hash_map<int,int>* result);
 	bool TSort(int v, int& clock, stack<Tv>* S);
 	template <typename PU> void PFS(int v, PU prioUpdater);
 };
@@ -96,9 +96,9 @@ struct DijkstraPU
 	{
 		if (g->Status(u) == UNDISCOVERED)
 		{
-			if (g->Priority(u) > (g->Weight(v, u) + g->Weight(v)))
+			if (g->Priority(u) > (g->Weight(v, u) + g->Priority(v)))
 			{
-				g->Priority(u) = g->Weight(v, u) + g->Weight(v);
+				g->Priority(u) = g->Weight(v, u) + g->Priority(v);
 				g->Parent(u) = v;
 			}
 		}
@@ -112,13 +112,13 @@ void Graph<Tv,Te>::PFS(int v, PU prioUpdater)
 	Priority(v) = 0; Status(v) = VISITED; Parent(v) = -1;
 	while (true)
 	{
-		for (int u = FirstNbr(v); u > -1; u = NextNbr(v))
+		for (int u = FirstNbr(v); u > -1; u = NextNbr(v,u))
 		{
 			prioUpdater(this, v, u);
 		}
 		for (int i = 0,shortest = INT_MAX; i < n; i++)
 		{
-			if (DISCOVERED == Status(i))
+			if (UNDISCOVERED == Status(i))
 			{
 				if (shortest > Priority(i))
 				{
@@ -164,7 +164,7 @@ bool Graph<Tv, Te>::TSort(int v, int& clock, stack<Tv>* S)
 
 #define Hca(x) FTime(x)
 template<typename Tv, typename Te>
-void Graph<Tv,Te>::BCC(int v, int& clock, stack<int>& s, hash_map<int,int>& result)
+void Graph<Tv,Te>::BCC(int v, int& clock, stack<int>& s, hash_map<int,int>* result)
 {
 	Status(v) = DISCOVERED; Hca(v) = DTime(v) = ++clock; s.push(v);
 	for (int u = FirstNbr(v); u > -1; u = NextNbr(v, u))
@@ -177,9 +177,10 @@ void Graph<Tv,Te>::BCC(int v, int& clock, stack<int>& s, hash_map<int,int>& resu
 				Hca(v) = min(Hca(v), Hca(u));
 			else
 			{
-				result.insert(pair<int, int>(v, v));
-				while (v != s.pop());
-					s.push(v);
+				result->insert(pair<int, int>(v, v));
+				while (v != s.top())
+					s.pop();
+				s.push(v);
 			}
 			break;
 		case DISCOVERED:
@@ -300,10 +301,10 @@ template <typename PU>
 void Graph<Tv, Te>::pfs(int pos, PU prioUpdater)
 {
 	Reset();
-	int v = pos; int clock;
+	int v = pos; int clock = 0;
 	do 
 	{
-		if (DISCOVERED == Status(v))
+		if (UNDISCOVERED == Status(v))
 			PFS(v, prioUpdater);
 	} while (pos!=(v = (++v%n)));
 
@@ -385,22 +386,22 @@ stack<Tv>* Graph<Tv, Te>::TSort(int pos)
 }
 
 template<typename Tv, typename Te>
-void Graph<Tv, Te>::BCC(int pos)
+hash_map<int,int>* Graph<Tv, Te>::BCC(int pos)
 {
 	Reset();
-	int v = pos; int clock; 
+	int v = pos; int clock = 0; 
 	stack<int> s;
-	/*list<int> l;*/
-	hash_map<int,int> l;
+	hash_map<int,int>* l = new hash_map<int,int>;
 	do 
 	{
-		if (DISCOVERED == Status(v))
+		if (UNDISCOVERED == Status(v))
 		{
 			Parent(v) = -1;
 			BCC(v, clock, s, l);
 			s.pop();
 		}
 	} while (pos!=(v=(++v%n)));
+	return l;
 }
 
 template<typename Tv,typename Te>

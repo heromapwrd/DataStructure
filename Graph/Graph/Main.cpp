@@ -59,6 +59,8 @@ ostream& operator << (ostream& out, Connect const& c)
 	return out;
 }
 
+void UndirectedInsert(int l, int r, Graph<Node, Connect>& graph, int weight = 0);
+
 
 void main()
 {
@@ -199,19 +201,79 @@ void main()
 	}*/
 	
 	//双连通域
-	GraphList<Node, Connect> matrix;
-	for (int i = 0; i < 6; i++)
+	/*GraphMatrix<Node, Connect> matrix;
+	for (int i = 0; i < 8; i++)
 	{
-	matrix.Insert(Node(i, 'A' + i));
+		matrix.Insert(Node(i, 'A' + i));
 	}
-	matrix.Insert(Connect(0, 2), rand() % RANDEDGE, 0, 2);
-	matrix.Insert(Connect(0, 5), rand() % RANDEDGE, 0, 5);
+	matrix.Insert(Connect(0, 1), rand() % RANDEDGE, 0, 1);
+	matrix.Insert(Connect(0, 7), rand() % RANDEDGE, 0, 7);
+	matrix.Insert(Connect(0, 8), rand() % RANDEDGE, 0, 8);
+	matrix.Insert(Connect(0, 9), rand() % RANDEDGE, 0, 9);
+	matrix.Insert(Connect(1, 0), rand() % RANDEDGE, 1, 0);
 	matrix.Insert(Connect(1, 2), rand() % RANDEDGE, 1, 2);
-	matrix.Insert(Connect(2, 5), rand() % RANDEDGE, 2, 5);
-	matrix.Insert(Connect(2, 4), rand() % RANDEDGE, 2, 4);
+	matrix.Insert(Connect(2, 1), rand() % RANDEDGE, 2, 1);
 	matrix.Insert(Connect(2, 3), rand() % RANDEDGE, 2, 3);
+	matrix.Insert(Connect(2, 7), rand() % RANDEDGE, 2, 7);
+	matrix.Insert(Connect(3, 2), rand() % RANDEDGE, 3, 2);
+	matrix.Insert(Connect(3, 4), rand() % RANDEDGE, 3, 4);
+	matrix.Insert(Connect(3, 6), rand() % RANDEDGE, 3, 6);
 	matrix.Insert(Connect(4, 3), rand() % RANDEDGE, 4, 3);
-	matrix.BCC(0);
+	matrix.Insert(Connect(4, 6), rand() % RANDEDGE, 4, 6);
+	matrix.Insert(Connect(5, 6), rand() % RANDEDGE, 5, 6);
+	matrix.Insert(Connect(6, 3), rand() % RANDEDGE, 6, 3);
+	matrix.Insert(Connect(6, 4), rand() % RANDEDGE, 6, 4);
+	matrix.Insert(Connect(6, 5), rand() % RANDEDGE, 6, 5);
+	matrix.Insert(Connect(7, 0), rand() % RANDEDGE, 7, 0);
+	matrix.Insert(Connect(7, 2), rand() % RANDEDGE, 7, 2);
+	matrix.Insert(Connect(8, 0), rand() % RANDEDGE, 8, 0);
+	matrix.Insert(Connect(8, 9), rand() % RANDEDGE, 8, 9);
+	matrix.Insert(Connect(9, 0), rand() % RANDEDGE, 9, 0);
+	matrix.Insert(Connect(9, 8), rand() % RANDEDGE, 9, 8);
+
+	hash_map<int, int>* result = NULL;
+	result = matrix.BCC(0);
 	cout << matrix << endl;
 	cout << endl << endl;
+
+	hash_map<int, int>::iterator it = result->begin();
+	for (; it != result->end(); it++)
+	{
+		cout << it->first << endl << endl;
+	}
+	delete result;*/
+
+	// 最小支撑树
+	GraphMatrix<Node, Connect> matrix;
+	for (int i = 0; i < 8; i++)
+	{
+		matrix.Insert(Node(i, 'A' + i));
+	}
+	UndirectedInsert(0, 1, matrix,4);
+	UndirectedInsert(1, 2, matrix,12);
+	UndirectedInsert(6, 7, matrix,14);
+	UndirectedInsert(3, 4, matrix,13);
+	UndirectedInsert(4, 5, matrix,5);
+	UndirectedInsert(0, 3, matrix,6);
+	UndirectedInsert(3, 6, matrix,2);
+	UndirectedInsert(2, 5, matrix,2);
+	UndirectedInsert(5, 7, matrix,7);
+	UndirectedInsert(0, 6, matrix,7);
+	UndirectedInsert(2, 7, matrix,10);
+	UndirectedInsert(2, 3, matrix,9);
+	UndirectedInsert(2, 4, matrix,1);
+	UndirectedInsert(4, 6, matrix,11);
+	UndirectedInsert(4, 7, matrix,8);
+	//PrimPU<Node,Connect> pu;
+	DijkstraPU<Node, Connect> pu;
+	matrix.pfs(0, pu);
+
+	cout << matrix << endl;
+	cout << endl << endl;
+}
+
+void UndirectedInsert(int l, int r, Graph<Node, Connect>& graph, int weight)
+{
+	graph.Insert(Connect(l, r), (weight<=0)? (rand() % RANDEDGE):weight, l, r);
+	graph.Insert(Connect(r, l), (weight <= 0) ? (rand() % RANDEDGE) : weight, r, l);
 }
