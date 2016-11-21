@@ -42,11 +42,60 @@ protected:
 	void UpdateHeightAbove(BinNode<T>* pNode);
 	int UpdateDepth(BinNode<T>* pNode);
 	void UpdateDepthBelow(BinNode<T>* pNode);
+	BinNode<T>* Connect34(BinNode<T>*a, BinNode<T>*b, BinNode<T>*c,
+		BinNode<T>*t0, BinNode<T>*t1, BinNode<T>*t2, BinNode<T>*t3);
+	BinNode<T>* RotateAt(BinNode<T>* v);
 
 protected:
 	int _size;
 	BinNode<T>* _root;
 };
+
+template<typename T>
+BinNode<T>* BinTree<T>::RotateAt(BinNode<T>* v)
+{
+	BinNode<T>* p = v->_parent;
+	BinNode<T>* g = p->_parent;
+	if (p->IsLChild())
+	{
+		if (v->IsLChild())
+		{
+			p->_parent = g->_parent;
+			return Connect34(v, p, g, v->_lChild, v->_rChild, p->_rChild, g->_rChild);
+		}
+		else
+		{
+			v->_parent = g->_parent;
+			return Connect34(p, v, g, p->_lChild, v->_lChild, v->_rChild, g->_rChild);
+		}
+	}
+	else
+	{
+		if (v->IsLChild())
+		{
+			v->_parent = g->_parent;
+			return Connect34(g, v, p, g->_lChild, v->_lChild, v->_rChild, p->_rChild);
+		}
+		else
+		{
+			p->_parent = g->_parent;
+			return Connect34(g, p, v, g->_lChild, p->_lChild, v->_lChild, v->_rChild);
+		}
+	}
+}
+
+template<typename T>
+BinNode<T>* BinTree<T>::Connect34(BinNode<T>*a, BinNode<T>*b, BinNode<T>*c, BinNode<T>*t0, BinNode<T>*t1, BinNode<T>*t2, BinNode<T>*t3)
+{
+	a->_lChild = t0; if (t0)t0->_parent = a;
+	a->_rChild = t1; if (t1)t1->_parent = a; UpdateHeight(a);
+	c->_lChild = t2; if (t2)t2->_parent = c;
+	c->_rChild = t3; if (t3)t3->_parent = c; UpdateHeight(c);
+	b->_lChild = a; b->_rChild = c;
+	a->_parent = b; c->_parent = b;
+	UpdateHeight(b);
+	return b;
+}
 
 template<typename T>
 int BinTree<T>::UpdateDepth(BinNode<T>* pNode)

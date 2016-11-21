@@ -51,6 +51,16 @@ struct Connect
 		parent = c.parent;
 		child = c.child;
 	}
+
+	bool operator == (const Connect& c)
+	{
+		return (parent == c.parent) && (child == c.child);
+	}
+
+	bool operator != (const Connect& c)
+	{
+		return !(parent == c.parent) && (child == c.child);
+	}
 };
 
 ostream& operator << (ostream& out, Connect const& c)

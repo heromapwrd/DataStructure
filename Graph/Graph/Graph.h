@@ -3,6 +3,7 @@
 #include "Common.h"
 #include <queue>
 #include <stack>
+#include <list>
 #include <algorithm>
 #include <hash_map>
 #include <assert.h>
@@ -70,7 +71,101 @@ private:
 	void BCC(int v, int& clock, stack<int>& s, hash_map<int,int>* result);
 	bool TSort(int v, int& clock, stack<Tv>* S);
 	template <typename PU> void PFS(int v, PU prioUpdater);
+	bool EulerLoop(list<queue<Connect>*>* l);
 };
+
+
+// 未验证
+template<typename Tv, typename Te>
+bool Graph<Tv, Te>::EulerLoop(list<list<int>*>* result)
+{
+	// 连通性:
+
+	// 入度,出度
+	int *indegree, *outdegree;
+	indegree = new int[n];
+	outdegree = new int[n];
+	memset(indegree, 0, sizeof(int)*n);
+	memset(outdegree, 0, sizeof(int)*n);
+	for (int i = 0; i < n; i++)
+	{
+		if ((indegree[i] = InDegree(i) )!= (outdegree[i] = OutDegree(i) ) || outdegree[i] == 0)
+		{
+			delete[] indegree;
+			delete[] outdegree;
+			return false;
+		}
+	}
+	list<int>* l = NULL;
+	hash_map<Connect,bool> delEdge;
+	int i = 0;
+	while (true)
+	{
+		while (i < n && (indegree[i] == 0) && (outdegree[i] == 0))
+			i++;
+		if (i >= n)
+			break;
+		l = new list<int>;
+		int v, s;
+		v = s = i;
+		l->push(v);
+		int* fPos = new int[result->size()?result->size():1];
+		do 
+		{
+			memset(fPos, -1, sizeof(int)*result->size());
+			list<list<int>*>::iterator it = result->begin();
+			for (; it != result->end(); it++)
+			{
+				list<list<int>*>::iterator pos = find(it->begin(), it->end(), v);
+				if (pos != it->end())
+				{
+					fPos[it - result->begin()] = pos - it->begin();
+					break;
+				}
+			}
+			for (int u = FirstNbr(v); u>-1; u = NextNbr(v, u))
+			{
+				if (delEdge.find(Connect(v, u)) != delEdge.end())
+				{
+					delEdge.insert(pair<Connect, bool>(Connect(v, u), true));
+					indegree[u]--;
+					outdegree[v]--;
+					v = u;
+					l->push(v);
+					break;
+				}
+			}
+		} while (v!=s);
+		list<list<int>*>::iterator it = result->begin();
+		for (; it != result->end(); it++)
+		{
+			if (fPos[it-result->begin()]>=0)
+			{
+				int j, k;
+				j = k = fPos[it - result->begin()];
+				list<int>::iterator dpos = find(l->begin(), l->end(), j);
+				do 
+				{
+					dpos = l->insert(dpos, *(it->begin() + k));
+					k = (++k) % it->size();
+				} while (j!=k);
+			}
+		}
+
+		for (int j = result->size() - 1; j >= 0; j--)
+		{
+			it = result->begin() + j;
+			if (fPos[j] >= 0)
+				result->erase(it);
+		}
+		result->push_back(l);
+		delete[] fPos;
+	}
+
+	delete[] indegree;
+	delete[] outdegree;
+	return true;
+}
 
 template<typename Tv, typename Te>
 struct PrimPU 
@@ -100,6 +195,40 @@ struct DijkstraPU
 			{
 				g->Priority(u) = g->Weight(v, u) + g->Priority(v);
 				g->Parent(u) = v;
+			}
+		}
+	}
+};
+
+template <typename Tv,typename Te>
+struct BFSITER
+{
+	virtual void operator()(Graph<Tv, Te>* g, int v, int u)
+	{
+		if (g->Status(u) == UNDISCOVERED)
+		{
+			if (g->Priority(u) > (1 + g->Priority(v)))
+			{
+				g->Priority(u) = 1 + g->Priority(v);
+				g->Parent(u) = v;
+			}
+		}
+	}
+};
+
+// 未验证
+template<typename Tv,typename Te>
+struct DFSITER
+{
+	virtual void operator()(Graph<Tv, Te>* g, int v, int u)
+	{
+		if (g->Status(u) == UNDISCOVERED)
+		{
+			if (g->Priority(u) > ( g->Priority(v) - 1))
+			{
+				g->Priority(u) = g->Priority(v) - 1;
+				g->Parent(u) = v;
+				return;
 			}
 		}
 	}
